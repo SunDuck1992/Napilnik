@@ -1,0 +1,68 @@
+using System;
+
+namespace NapilnikTask1
+{
+    class Weapon
+    {
+        public string Name { get; private set; }
+        public int Damage { get; private set; }
+        public int Bullets { get; private set; }
+
+        public Weapon(string name, int damage, int bullets)
+        {
+            Name = name;
+            Damage = damage;
+            Bullets = bullets;
+        }
+
+        public void Fire(Player player)
+        {
+            if (Damage <= 0 || Bullets <= 0)
+            {
+                return;
+            }
+            else
+            {
+                player.TakeDamage(Damage);
+
+                Bullets--;
+            }
+        }
+    }
+
+    class Player
+    {
+        private int _health;
+
+        public int Health => _health;
+
+        public void TakeDamage(int damage)
+        {
+            if (_health > 0)
+            {
+                _health -= damage;
+            }
+            else
+            {
+                Console.WriteLine("Я уже умер!");
+            }
+        }
+    }
+
+    class Bot
+    {
+        public Weapon Weapon { get; private set; }
+        public int Health { get; private set; }
+
+        public Bot(Weapon weapon, int health)
+        {
+            Weapon = weapon;
+            Health = health;
+        }
+
+        public void OnSeePlayer(Player player)
+        {
+            Weapon.Fire(player);
+        }
+    }
+}
