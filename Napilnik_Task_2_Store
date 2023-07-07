@@ -1,0 +1,184 @@
+using System;
+using System.Collections.Generic;
+
+namespace Napilnik_Task_2
+{
+    internal class Program
+    {
+        static void Main(string[] args)
+        {
+            Good iPhone12 = new Good("IPhone 12");
+            Good iPhone11 = new Good("IPhone 11");
+
+            Warehouse warehouse = new Warehouse();
+
+            Shop shop = new Shop(warehouse);
+
+            warehouse.Delive(iPhone12, 10);
+            warehouse.Delive(iPhone11, 1);
+
+            warehouse.Show();   //Вывод всех товаров на складе с их остатком
+
+            Cart cart = shop.Cart();
+            cart.Add(iPhone12, 4);
+            cart.Add(iPhone11, 3); //при такой ситуации возникает ошибка так, как нет нужного количества товара на складе
+
+            cart.Show();    //Вывод всех товаров в корзине
+
+            Console.WriteLine(cart.Order().PayLink);
+
+            cart.Add(iPhone12, 9); //Ошибка, после заказа со склада убираются заказанные товары
+        }
+    }
+
+    public class Shop
+    {
+        public Warehouse Warehouse { get; private set; }
+        public string PayLink { get; private set; } = "AppleShop.com";
+
+        public Shop(Warehouse warehouse)
+        {
+            Warehouse = warehouse;
+        }
+
+        public Cart Cart()
+        {
+            return new Cart(this);
+        }
+    }
+
+    public class Warehouse
+    {
+        private Dictionary<Good, int> _goods;
+
+        public IReadOnlyDictionary<Good, int> Goods => _goods;
+
+        public Warehouse()
+        {
+            _goods = new Dictionary<Good, int>();
+        }
+
+        public void Delive(Good good, int count)
+        {
+            if (good == null || count <= 0)
+            {
+                throw new NullReferenceException();
+            }
+
+            if (_goods.ContainsKey(good))
+            {
+                _goods[good] += count;
+            }
+            else
+            {
+                _goods.Add(good, count);
+            }
+        }
+
+        public void RemoveGood(Good good, int count)
+        {
+            if (_goods.ContainsKey(good))
+            {
+                if (_goods[good] >= count)
+                {
+                    _goods[good] -= count;
+
+                    if (_goods[good] == 0)
+                    {
+                        _goods.Remove(good);
+                    }
+                }
+                else
+                {
+                    throw new ArgumentOutOfRangeException();
+                }
+            }
+            else
+            {
+                throw new NullReferenceException();
+            }
+        }
+
+        public void Show()
+        {
+            Console.WriteLine("Ассортимент товаров на складе:");
+
+            foreach (var good in _goods)
+            {
+                Console.WriteLine("Наименование - " + good.Key.Name + ", количество - " + good.Value);
+            }
+        }
+    }
+
+    public class Cart
+    {
+        private Dictionary<Good, int> _goods;
+
+        public Shop Shop { get; private set; }
+
+        public Cart(Shop shop)
+        {
+            Shop = shop;
+            _goods = new Dictionary<Good, int>();
+        }
+
+        public void Add(Good good, int count)
+        {
+            if (Shop.Warehouse.Goods.ContainsKey(good))
+            {
+                if (Shop.Warehouse.Goods[good] >= count)
+                {
+                    Shop.Warehouse.RemoveGood(good, count);
+                }
+                else
+                {
+                    throw new ArgumentOutOfRangeException();
+                }
+
+                if (_goods.ContainsKey(good))
+                {
+                    _goods[good] += count;
+                }
+                else
+                {
+                    _goods.Add(good, count);
+                }
+            }
+            else
+            {
+                throw new NullReferenceException();
+            }
+        }
+
+        public void Show()
+        {
+            Console.WriteLine("Заказано товаров:");
+
+            foreach (var good in _goods)
+            {
+                Console.WriteLine("Наименование - " + good.Key.Name + ", количество - " + good.Value);
+            }
+        }
+
+        public Shop Order()
+        {
+            Console.Write("Заказ оформлен. Благодарим за покупку! Всегда ваш - ");
+            return Shop;
+        }
+    }
+
+    public class Good
+    {
+        public string Name { get; private set; }
+
+        public Good(string name)
+        {
+            if (string.IsNullOrEmpty(name))
+            {
+                throw new NullReferenceException();
+            }
+
+            Name = name;
+        }
+    }
+}
