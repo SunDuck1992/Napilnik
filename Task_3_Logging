@@ -1,0 +1,106 @@
+using System;
+using System.IO;
+
+namespace Napilnik_Task_3_Logging
+{
+    class Program
+    {
+        static void Main(string[] args)
+        {
+            ILogger[] loggers =
+            {
+                new ConsoleLogWriter(),
+                new FileLogWriter(),
+                new SecureConsoleLogWriter(),
+                new SecureFileLogWriter(),
+                new HybridConsoleAndFileLogWriter()
+            };
+
+            PathFinder[] pathFinders =
+            {
+                new PathFinder(loggers[0]),
+                new PathFinder(loggers[1]),
+                new PathFinder(loggers[2]),
+                new PathFinder(loggers[3]),
+                new PathFinder(loggers[4])
+            };
+
+            foreach(var pathfinder in pathFinders)
+            {
+                pathfinder.Find();
+            }
+        }
+    }
+
+    interface ILogger
+    {
+        void WriteError(string message);
+    }
+
+    class PathFinder
+    {
+        private readonly ILogger _logger;
+
+        public PathFinder(ILogger logger)
+        {
+            _logger = logger;
+        }
+
+        public void Find()
+        {
+            string result = "Выполнен поиск:";
+            _logger.WriteError(result);
+        }
+    }
+
+    class ConsoleLogWriter : ILogger
+    {
+        public void WriteError(string message)
+        {
+            Console.WriteLine(message);
+        }
+    }
+
+    class FileLogWriter : ILogger
+    {
+        public void WriteError(string message)
+        {
+            File.WriteAllText("log.text", message);
+        }
+    }
+
+    class SecureConsoleLogWriter : ILogger
+    {
+        public void WriteError(string message)
+        {
+            if(DateTime.Now.DayOfWeek == DayOfWeek.Friday)
+            {
+                Console.WriteLine(message);
+            }
+        }
+    }
+
+    class SecureFileLogWriter : ILogger
+    {
+        public void WriteError(string message)
+        {
+            if (DateTime.Now.DayOfWeek == DayOfWeek.Friday)
+            {
+                File.WriteAllText("log.text", message);
+            }
+        }
+    }
+
+    class HybridConsoleAndFileLogWriter : ILogger
+    {
+        public void WriteError(string message)
+        {
+            Console.WriteLine(message);
+
+            if(DateTime.Now.DayOfWeek == DayOfWeek.Friday)
+            {
+                File.WriteAllText("log.text", message);
+            }
+        }
+    }
+}
